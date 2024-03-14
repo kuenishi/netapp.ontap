@@ -261,6 +261,12 @@ options:
     type: str
     version_added: 21.21.0
 
+  vip:
+    description:
+      - Specifies the virtual IP address of the LIF.
+    type: bool
+    version_added: <some future version>
+
   ignore_zapi_options:
     description:
       - ignore unsupported options that should not be relevant.
@@ -422,7 +428,6 @@ class NetAppOntapInterface:
     ''' object to describe  interface info '''
 
     def __init__(self):
-
         self.argument_spec = netapp_utils.na_ontap_host_argument_spec()
         self.argument_spec.update(dict(
             state=dict(required=False, choices=[
@@ -431,6 +436,7 @@ class NetAppOntapInterface:
             interface_type=dict(type='str', choices=['fc', 'ip']),
             ipspace=dict(type='str'),
             broadcast_domain=dict(type='str'),
+            vip=dict(type='bool',default=False),
             home_node=dict(required=False, type='str', default=None),
             current_node=dict(required=False, type='str'),
             home_port=dict(required=False, type='str'),
@@ -1207,6 +1213,10 @@ class NetAppOntapInterface:
 
     def create_interface(self, body):
         ''' calling zapi to create interface '''
+        body['vip'] = True
+        # body['ip'].pop('netmask')
+        print(">>>>>>>>>>", body)
+        # raise RuntimeError(body)
         if self.use_rest:
             return self.create_interface_rest(body)
 
@@ -1445,6 +1455,7 @@ class NetAppOntapInterface:
                 self.migrate_interface_rest(uuid, migrate_body)
 
         result = netapp_utils.generate_result(self.na_helper.changed, cd_action, modify)
+        print(result)
         self.module.exit_json(**result)
 
 
